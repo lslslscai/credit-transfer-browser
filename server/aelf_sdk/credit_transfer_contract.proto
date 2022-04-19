@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+import "types.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+/*
+    1. all float number is presented by integer. the saved number are multiplied by 100 to represent two decimal places
+*/
+//user data
+message CourseInfo {
+    string courseID = 1;//course's ID
+    bool isCompulsory = 2;//if the course is compulsory, it will be true
+    uint64 courseType = 3;//used to identify courses' type (will be defined in constants)
+    bool isValid = 4;//show if the course is valid
+}
+
+message CourseRecord {
+    string courseID = 1;//course‘s basic info
+    string studentID = 2;//student that have the course
+    Protocol protocol = 3;//protocol about the course
+    bool state = 4;//show course's state (completed, completing, etc.)
+    uint64 GPA = 5;//course's credit (float)
+    uint64 score = 6;//course's score that student gets (float)
+    string note = 7;//notifications
+}
+
+message Protocol {
+    string protoID = 1;//protocol's ID
+}
+
+message SRT {
+    string studentID = 1;//student's ID, it's composed by UID itself and School ID 
+    // e.g.: A student has a real ID of 10001, his school's ID is 345. Then his studentID will be 34510001
+    uint64 rating = 2;//shows how actively students participate in the system. (float)
+    uint64 state = 3;//show student's state(studying, graduated, retreated)
+}
+
+message School {
+    string schoolID = 1;//school's ID
+    Address schoolAddress = 2;//school's blockchain account's address
+    uint64 rating = 3;//shows how actively school and its students participate in the system (float)
+}
+
+message Teacher{
+    Address teacherAddress = 1;//教师对应钱包地址
+    string teacherID = 2;//教师编号
+}
+//data in process
+message SRUploadInput {
+    string studentID = 1;//student that want the course
+    string courseID = 2;//course that to be selected
+    Protocol protocol = 3;//protocol about the course
+    string note = 4;//notification
+}
+
+message SRDropInput{
+    string studentID = 1;//student that have the course
+    string courseID = 2;//course that is selected
+}
+
+message SRModifyInput{
+    string studentID = 1;//student that have the course
+    string courseID = 2;//course that is selected
+    bool state = 3;//show course's state (completed, completing, etc.)
+    uint64 GPA = 4;//course's credit (float)
+    uint64 score = 5;//course's score that student gets (float)
+}

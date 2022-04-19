@@ -1,0 +1,26 @@
+{
+    "100562160001": {
+        "courseID": "100562160001",
+        "courseName": "lesson1",
+        "school": "TJU",
+        "college": "String",
+        "selected": 0,
+        "capacity": 100
+    },
+    "100562160002": {
+        "courseID": "100562160002",
+        "courseName": "lesson2",
+        "school": "TJU",
+        "college": "String",
+        "selected": 0,
+        "capacity": 100
+    },
+    "100562160003": {
+        "courseID": "100562160003",
+        "courseName": "lesson3",
+        "school": "TJU",
+        "college": "String",
+        "selected": 0,
+        "capacity": 100
+    }
+}

@@ -1,0 +1,11 @@
+*.log
+
+*.pot
+
+*.pyc
+
+__pycache__
+
+/server/db.sqlite3
+
+/server/asserts
