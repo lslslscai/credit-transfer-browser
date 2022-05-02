@@ -27,23 +27,7 @@
         >我的课程</el-menu-item
       >
       <el-menu-item index="/home/course/select/" route="/home/course/select"
-        >校内选课</el-menu-item
-      >
-      <el-menu-item
-        index="/home/course/select/exterior/"
-        route="/home/course/select/exterior"
-        >跨校选课</el-menu-item
-      >
-    </el-sub-menu>
-    <el-sub-menu index="4">
-      <template #title>学分认证</template>
-      <el-menu-item index="/home/credit_transfer" route="/home/credit_transfer"
-        >提交申请</el-menu-item
-      >
-      <el-menu-item
-        index="/home/credit_transfer/states"
-        route="/home/credit_transfer/states"
-        >申请管理</el-menu-item
+        >选课</el-menu-item
       >
     </el-sub-menu>
     <el-menu-item index="5">登出</el-menu-item>
@@ -57,7 +41,7 @@ const logout = () => {
   let formData = new FormData();
   formData.append("studentID", document.cookie.split("login=")[1]);
   formData.append("pwd", "undefined")
-  formData.append("pushType", "Logout");
+  formData.append("pushType", "Stu_Logout");
   console.log(document.cookie.split("login=")[1]);
   axios.defaults.withCredentials = true;
   axios.get("http://127.0.0.1:8000/api/connect").then((res) => {

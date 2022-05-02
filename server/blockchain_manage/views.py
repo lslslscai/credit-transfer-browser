@@ -1,19 +1,24 @@
 from django.shortcuts import render
 from blockchain_manage.models import cr_handler
 from django.http import HttpResponse, JsonResponse
-from blockchain_manage.form import SRT
+from blockchain_manage.form import SRT, CourseInfo
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
 def resolve_req(req):
     if req.method == 'POST':
-        print(str(req.POST))
+        print("content:"+str(req.POST))
         if str(req.path).find("SRT_Create") != -1:
             print ("creating a SRT")
             form = SRT(req.POST)
             if form.is_valid():
                 return form.cleaned_data
             raise Exception("invalid SRT input", form.errors)
-
+        elif str(req.path).find("Course_Create") != -1:
+            print ("creating a Course")
+            form = CourseInfo(req.POST)
+            if form.is_valid():
+                return form.cleaned_data
+            raise Exception("invalid SRT input", form.errors)
     elif req.method == 'GET':
         if str(req.path).find("get_SRT") != -1:
             print("getting SRT")
@@ -63,4 +68,18 @@ def get_School(req):
     except Exception as err:
         print(err)
         return HttpResponse(err)
-# Create your views here.
+
+
+@csrf_exempt
+def Course_Create(req):
+    try:
+        data = resolve_req(req)
+        print(data)
+        priKey = data["priKey"]
+        handler = cr_handler(priKey)
+        ret = dict()
+        ret["txRet"] = handler.Course_Create(data)
+        return JsonResponse(ret)
+    except Exception as err:
+        print(err)
+        return HttpResponse(err)

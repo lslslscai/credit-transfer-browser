@@ -6,12 +6,17 @@ import StuLogin from '../views/student_view/login.vue'
 import StuHomePage from '../components/student/StuHomePage.vue'
 import SelectLesson from '../views/student_view/select_lesson/select_lesson.vue'
 import Score from '../views/student_view/score_page/score_page.vue'
+import StuPersonalInfo from '../views/student_view/personal_info.vue'
+import StuLessonPage from '../views/student_view/lesson_page/lesson_page.vue'
 
 import TeaHelloWorld from '../views/teacher_view/TeaHelloWorld.vue'
 import TeaLogin from '../views/teacher_view/login.vue'
 import TeaHomePage from '../components/teacher/TeaHomePage.vue'
 import TeaStudentAdmin from '../views/teacher_view/student_page/student_admin.vue'
 import TeaStudentAdd from '../views/teacher_view/student_page/student_add.vue'
+import TeaCourseAdmin from '../views/teacher_view/lesson_page/lesson_admin.vue'
+import TeaCourseAdd from '../views/teacher_view/lesson_page/lesson_add.vue'
+import TeaScoreAdmin from '../views/teacher_view/score_admin.vue'
 
 const routes = [
   {
@@ -32,36 +37,22 @@ const routes = [
         component: StuHelloWorld
       },
       {
-        path: '/personal_page',
-        component: Test
+        path: 'personal_page',
+        component: StuPersonalInfo
       },
       {
-        path: '/personal_page/score',
+        path: 'personal_page/score',
         name: 'Score',
         component: Score
       },
       {
-        path: '/course',
-        component: Test
+        path: 'course',
+        component: StuLessonPage
       },
       {
-        path: '/course/select/',
+        path: 'course/select/',
         name: 'SelectLesson',
         component: SelectLesson
-      },
-      {
-        path: '/course/select/exterior/',
-        component: Test
-      },
-      {
-        path: '/credit_transfer',
-        name: 'Test',
-        component: Test
-      },
-      {
-        path: '/credit_transfer/states',
-        name: 'Test',
-        component: Test
       },
     ]
   },
@@ -79,11 +70,11 @@ const routes = [
       },
       {
         path: 'course',
-        component: Test
+        component: TeaCourseAdmin
       },
       {
         path: 'course/add',
-        component: Test
+        component: TeaCourseAdd
       },
       {
         path: 'course/adjust',
@@ -102,14 +93,8 @@ const routes = [
         component: Test
       },
       {
-        path: 'credit_transfer',
-        component: Test,
-        children:[
-          {
-            path: ':id',
-            component: Test
-          }
-        ]
+        path: 'scoure_admin',
+        component: TeaScoreAdmin
       },
     ]
   },

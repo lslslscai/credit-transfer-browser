@@ -30,3 +30,16 @@ def insertDataToDB(db, collection, value):
     ret = db_collection.insert_one(value)
     return ret
 
+def findAndReplace(db, collection, filter, replacement):
+    [db_handle, client] = get_db_handle(
+        db,"mongodb://localhost:27017/")
+    db_collection = db_handle[collection]
+    ret = db_collection.find_one_and_replace(filter, replacement)
+    return ret
+
+def deleteDataFromDB(db, collection, filter):
+    [db_handle, client] = get_db_handle(
+        db,"mongodb://localhost:27017/")
+    db_collection = db_handle[collection]
+    ret = db_collection.delete_one(filter)
+    return ret

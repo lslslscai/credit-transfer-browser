@@ -8,34 +8,53 @@
   >
     <span>{{ text }}</span>
     <el-form :model="form">
-      <el-form-item label="学生编号" :label-width="formLabelWidth">
-        <el-input v-model="form.studentID" disabled/>
+      <el-form-item label="课程编号">
+        <el-input v-model="form.courseID" />
       </el-form-item>
-      <el-form-item label="学生姓名" :label-width="formLabelWidth">
-        <el-input v-model="form.studentName" />
+      <el-form-item label="课程名称">
+        <el-input v-model="form.courseName" />
       </el-form-item>
-      <el-form-item label="学生状态" :label-width="formLabelWidth">
-        <el-select
-          v-model="form.studentState"
-          placeholder="Please select a zone"
-        >
-          <el-option value="在读" />
-          <el-option value="毕业" />
-          <el-option value="退学" />
-        </el-select>
+      <el-form-item label="课程性质">
+        <el-switch
+          v-model="form.isCompulsory"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          :active-value="true"
+          :inactive-value="false"
+          active-text="必修"
+          inactive-text="选修"
+        />
       </el-form-item>
-      <el-form-item label="学校" :label-width="formLabelWidth">
+      <el-form-item label="所属学校">
         <el-input v-model="form.school" />
       </el-form-item>
-      <el-form-item label="学院" :label-width="formLabelWidth">
+      <el-form-item label="开课学院">
         <el-input v-model="form.college" />
       </el-form-item>
-      <el-form-item label="在读学历" :label-width="formLabelWidth">
-        <el-select v-model="form.type" placeholder="Please select a zone">
-          <el-option value="本科生" />
-          <el-option value="研究生" />
-          <el-option value="博士生" />
+      <el-form-item label="课程容量">
+        <el-input v-model="form.capacity" />
+      </el-form-item>
+      <el-form-item label="学分">
+        <el-input v-model="form.credit" />
+      </el-form-item>
+      <el-form-item label="课程类别">
+        <el-select v-model="form.courseType">
+          <el-option value="课内课程" />
+          <el-option value="校内跨专业课程" />
+          <el-option value="跨校课程" />
+          <el-option value="课外课程" />
         </el-select>
+      </el-form-item>
+      <el-form-item label="是否开设">
+        <el-switch
+          v-model="form.isValid"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          :active-value="true"
+          :inactive-value="false"
+          active-text="是"
+          inactive-text="否"
+        />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -69,16 +88,19 @@ export default {
   setup() {
     const formLabelWidth = "140px";
     const form = reactive({
-      studentID: "",
-      studentName: "",
-      studentState: "",
+      courseID: "",
+      courseName: "",
+      isCompulsory: true,
+      isValid: true,
       school: "",
       college: "",
-      type: "",
+      courseType: "",
+      capacity: "",
+      credit: "",
     });
     return {
-      form,
       formLabelWidth,
+      form,
     };
   },
   data() {
@@ -87,12 +109,15 @@ export default {
   methods: {
     handleOpen() {
       console.log(this.$props.data[0]);
-      this.form.studentID = this.$props.data[0]["studentID"];
-      this.form.studentName = this.$props.data[0]["studentName"];
-      this.form.studentState = this.$props.data[0]["studentState"];
+      this.form.courseID = this.$props.data[0]["courseID"];
+      this.form.courseName = this.$props.data[0]["courseName"];
+      this.form.isCompulsory = this.$props.data[0]["isCompulsory"];
       this.form.school = this.$props.data[0]["school"];
       this.form.college = this.$props.data[0]["college"];
-      this.form.type = this.$props.data[0]["type"];
+      this.form.courseType = this.$props.data[0]["courseType"];
+      this.form.isValid = this.$props.data[0]["isValid"];
+      this.form.capacity = this.$props.data[0]["capacity"];
+      this.form.credit = this.$props.data[0]["credit"];
     },
     handleClose(done) {
       this.$confirm("确认关闭？将不保存已做的修改")
@@ -102,7 +127,7 @@ export default {
         .catch((_) => {});
     },
     select_confirm() {
-      this.$confirm("确认修改")
+      this.$confirm("确认修改？")
         .then((_) => {
           axios.defaults.withCredentials = true;
           axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
@@ -113,17 +138,17 @@ export default {
             let teacherID = document.cookie.split("Tealogin=")[1];
 
             let formData = new FormData();
-            formData.append("studentID", this.$props.data[0]["studentID"]);
-            formData.append("studentName", this.form.studentName);
+            formData.append("courseID", this.form.courseID);
+            formData.append("courseName", this.form.courseName);
             formData.append("school", this.form.school);
             formData.append("college", this.form.college);
-            formData.append("type", this.form.type);
-            formData.append("studentState", this.form.studentState)
-            formData.append("pwd", this.form.studentID);
-            formData.append("state", 0);
-            formData.append("pushType", "SRT_Adjust");
+            formData.append("courseType", this.form.courseType);
+            formData.append("isCompulsory", this.form.isCompulsory);
+            formData.append("isValid", this.form.isValid);
+            formData.append("capacity", this.form.capacity);
+            formData.append("pushType", "Course_Modify");
             formData.append("teacherID", teacherID);
-
+            formData.append("credit", this.form.credit);
             axios({
               method: "POST",
               headers: {
@@ -146,7 +171,7 @@ export default {
           this.$emit("closeDialog");
         })
         .catch((_) => {});
-    },
+    }
   },
 };
 </script>

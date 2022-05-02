@@ -6,36 +6,27 @@
     :before-close="handleClose"
     @open="handleOpen"
   >
-    <span>{{ text }}</span>
     <el-form :model="form">
-      <el-form-item label="学生编号" :label-width="formLabelWidth">
+      <el-form-item label="课程编号">
+        <el-input v-model="form.courseID" disabled/>
+      </el-form-item>
+      <el-form-item label="课程名称">
+        <el-input v-model="form.courseName" disabled/>
+      </el-form-item>
+      <el-form-item label="学生编号">
         <el-input v-model="form.studentID" disabled/>
       </el-form-item>
-      <el-form-item label="学生姓名" :label-width="formLabelWidth">
-        <el-input v-model="form.studentName" />
+      <el-form-item label="课程名称">
+        <el-input v-model="form.studentName" disabled/>
       </el-form-item>
-      <el-form-item label="学生状态" :label-width="formLabelWidth">
-        <el-select
-          v-model="form.studentState"
-          placeholder="Please select a zone"
-        >
-          <el-option value="在读" />
-          <el-option value="毕业" />
-          <el-option value="退学" />
-        </el-select>
+      <el-form-item label="成绩">
+        <el-input v-model="form.score" @change="calGPA"/>
       </el-form-item>
-      <el-form-item label="学校" :label-width="formLabelWidth">
-        <el-input v-model="form.school" />
+      <el-form-item label="绩点">
+        <el-input v-model="form.GPA" disabled/>
       </el-form-item>
-      <el-form-item label="学院" :label-width="formLabelWidth">
-        <el-input v-model="form.college" />
-      </el-form-item>
-      <el-form-item label="在读学历" :label-width="formLabelWidth">
-        <el-select v-model="form.type" placeholder="Please select a zone">
-          <el-option value="本科生" />
-          <el-option value="研究生" />
-          <el-option value="博士生" />
-        </el-select>
+      <el-form-item>
+        <el-checkbox v-model="form.failed">是否挂科</el-checkbox>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -61,38 +52,47 @@ export default {
       type: Boolean,
       required: true,
     },
-    text: {
-      type: String,
-      required: true,
-    },
   },
   setup() {
     const formLabelWidth = "140px";
     const form = reactive({
+      courseID: "",
+      courseName: "",
       studentID: "",
       studentName: "",
-      studentState: "",
-      school: "",
-      college: "",
-      type: "",
+      score: "",
+      GPA: "",
+      failed:false
     });
     return {
-      form,
       formLabelWidth,
+      form,
     };
   },
   data() {
     return {};
   },
   methods: {
+    calGPA(){
+      if(this.form.score >= 90) this.form.GPA = 4.0
+      else if(this.form.score >= 85) this.form.GPA = 3.7
+      else if(this.form.score >= 82) this.form.GPA = 3.3
+      else if(this.form.score >= 78) this.form.GPA = 3.0
+      else if(this.form.score >= 75) this.form.GPA = 2.7
+      else if(this.form.score >= 72) this.form.GPA = 2.3
+      else if(this.form.score >= 68) this.form.GPA = 2.0
+      else if(this.form.score >= 64) this.form.GPA = 1.5
+      else if(this.form.score >= 60) this.form.GPA = 1.0
+      else this.form.GPA = 0
+    },
     handleOpen() {
       console.log(this.$props.data[0]);
+      this.form.courseID = this.$props.data[0]["courseID"];
+      this.form.courseName = this.$props.data[0]["courseName"];
       this.form.studentID = this.$props.data[0]["studentID"];
       this.form.studentName = this.$props.data[0]["studentName"];
-      this.form.studentState = this.$props.data[0]["studentState"];
-      this.form.school = this.$props.data[0]["school"];
-      this.form.college = this.$props.data[0]["college"];
-      this.form.type = this.$props.data[0]["type"];
+      this.form.score = this.$props.data[0]["score"];
+      this.form.GPA = this.$props.data[0]["GPA"];
     },
     handleClose(done) {
       this.$confirm("确认关闭？将不保存已做的修改")
@@ -102,8 +102,9 @@ export default {
         .catch((_) => {});
     },
     select_confirm() {
-      this.$confirm("确认修改")
+      this.$confirm("确认修改？")
         .then((_) => {
+          console.log(this.form)
           axios.defaults.withCredentials = true;
           axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
             console.log(document.cookie);
@@ -113,17 +114,13 @@ export default {
             let teacherID = document.cookie.split("Tealogin=")[1];
 
             let formData = new FormData();
-            formData.append("studentID", this.$props.data[0]["studentID"]);
-            formData.append("studentName", this.form.studentName);
-            formData.append("school", this.form.school);
-            formData.append("college", this.form.college);
-            formData.append("type", this.form.type);
-            formData.append("studentState", this.form.studentState)
-            formData.append("pwd", this.form.studentID);
-            formData.append("state", 0);
-            formData.append("pushType", "SRT_Adjust");
+            formData.append("courseID", this.form.courseID);
+            formData.append("studentID", this.form.studentID);
+            formData.append("score", this.form.score);
+            formData.append("GPA", this.form.GPA);
+            formData.append("pushType", "SR_Adjust");
             formData.append("teacherID", teacherID);
-
+            formData.append("courseState", true);
             axios({
               method: "POST",
               headers: {
@@ -146,7 +143,7 @@ export default {
           this.$emit("closeDialog");
         })
         .catch((_) => {});
-    },
+    }
   },
 };
 </script>

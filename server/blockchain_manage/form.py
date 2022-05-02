@@ -8,6 +8,7 @@ class CourseInfo(forms.Form):
     isCompulsory = forms.BooleanField(label="课程性质")
     courseType = forms.IntegerField(max_value=3, label="课程类型")
     isValid = forms.BooleanField(label="课程状态")
+    credit = forms.IntegerField(label="学分")
 
 class CourseRecord (forms.Form):
     courseID = forms.CharField(min_length=12, max_length=12, label="课程ID") #course‘s basic info
@@ -59,3 +60,6 @@ class SRModifyInput(forms.Form):
     state = forms.BooleanField(label="选课状态") #show course's state (completed, completing, etc.)
     GPA = forms.FloatField(max_value=4.0, label="绩点") #course's credit (float)
     score = forms.FloatField(max_value=100.0, label="分数") #course's score that student gets (float)
+
+class courseUpdata(forms.Form):
+    schoolID = forms.CharField(min_length=5, max_length=5, label="学校ID") #school's ID

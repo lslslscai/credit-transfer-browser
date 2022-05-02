@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import Dialog from "../../../../components/dialog/lesson_dialog.vue";
+import Dialog from "../../../../components/dialog/lesson_modify.vue";
 export default {
   props: {
     tableData: {
@@ -44,10 +44,17 @@ export default {
     return {
       selectedData: [],
       dialogTableVisible: false,
-      text: "你确定选这门课吗?"
+      text: "您可以按需求在下面修改学生信息"
     };
   },
   methods: {
+    handleClose(done) {
+      this.$confirm("确认关闭？")
+        .then((_) => {
+          done();
+        })
+        .catch((_) => {});
+    },
     select_lesson(row, column, event) {
       this.selectedData.pop();
       this.selectedData.push(row);

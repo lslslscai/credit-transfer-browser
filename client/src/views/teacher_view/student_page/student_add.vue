@@ -24,12 +24,9 @@
 </template>
 <script>
 import { ref, reactive } from "vue";
-import ScoreList from "./components/student_list.vue";
 import axios from "axios";
 export default {
-  components: {
-    ScoreList,
-  },
+
   setup() {
     const form = reactive({
       studentID: "",
@@ -67,13 +64,14 @@ export default {
 
         let formData = new FormData()
         formData.append("studentID", this.form.studentID)
-        formData.append("studentName", this.form.studentID)
+        formData.append("studentName", this.form.studentName)
         formData.append("school", this.form.school)
         formData.append("college", this.form.college)
         formData.append("type", this.form.type)
         formData.append("pwd", this.form.studentID)
+        formData.append("studentState", "在读")
         formData.append("state", 0)
-        formData.append("pushType", "Register")
+        formData.append("pushType", "SRT_Register")
         formData.append("teacherID", teacherID)
 
         axios({
@@ -85,7 +83,9 @@ export default {
             data: formData,
             url: 'http://127.0.0.1:8000/api/db_manage/adjust/'
           }
-        )
+        ).then((res)=>{
+          console.log(res)
+        })
       })
     }
   }

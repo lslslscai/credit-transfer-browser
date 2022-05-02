@@ -1,20 +1,20 @@
 <template>
-  <ScoreList v-bind:tableData="scores"/>
+  <studentList v-bind:tableData="student"/>
 </template>
 <script>
   import { ref } from 'vue'
-  import ScoreList from "./components/student_list.vue"
+  import studentList from "./components/student_list.vue"
   import axios from 'axios'
   export default {
     components: {
-      ScoreList
+      studentList
     },
     setup(){
       const student = ref([])
       axios.get("http://127.0.0.1:8000/api/db_manage/select/?type=student&filter=all")
       .then(res => (
         student.value = res.data.student,
-        console.log(scores.student)
+        console.log(student.value)
       ))
       return{
         student

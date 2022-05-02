@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x1e\x63redit_transfer_contract.proto\x1a\x0btypes.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\"Y\n\nCourseInfo\x12\x10\n\x08\x63ourseID\x18\x01 \x01(\t\x12\x14\n\x0cisCompulsory\x18\x02 \x01(\x08\x12\x12\n\ncourseType\x18\x03 \x01(\x04\x12\x0f\n\x07isValid\x18\x04 \x01(\x08\"\x89\x01\n\x0c\x43ourseRecord\x12\x10\n\x08\x63ourseID\x18\x01 \x01(\t\x12\x11\n\tstudentID\x18\x02 \x01(\t\x12\x1b\n\x08protocol\x18\x03 \x01(\x0b\x32\t.Protocol\x12\r\n\x05state\x18\x04 \x01(\x08\x12\x0b\n\x03GPA\x18\x05 \x01(\x04\x12\r\n\x05score\x18\x06 \x01(\x04\x12\x0c\n\x04note\x18\x07 \x01(\t\"\x1b\n\x08Protocol\x12\x0f\n\x07protoID\x18\x01 \x01(\t\"7\n\x03SRT\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x0e\n\x06rating\x18\x02 \x01(\x04\x12\r\n\x05state\x18\x03 \x01(\x04\"K\n\x06School\x12\x10\n\x08schoolID\x18\x01 \x01(\t\x12\x1f\n\rschoolAddress\x18\x02 \x01(\x0b\x32\x08.Address\x12\x0e\n\x06rating\x18\x03 \x01(\x04\">\n\x07Teacher\x12 \n\x0eteacherAddress\x18\x01 \x01(\x0b\x32\x08.Address\x12\x11\n\tteacherID\x18\x02 \x01(\t\"_\n\rSRUploadInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\x12\x1b\n\x08protocol\x18\x03 \x01(\x0b\x32\t.Protocol\x12\x0c\n\x04note\x18\x04 \x01(\t\"2\n\x0bSRDropInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\"_\n\rSRModifyInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\x08\x12\x0b\n\x03GPA\x18\x04 \x01(\x04\x12\r\n\x05score\x18\x05 \x01(\x04\x62\x06proto3'
+  serialized_pb=b'\n\x1e\x63redit_transfer_contract.proto\x1a\x0btypes.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1egoogle/protobuf/wrappers.proto\"i\n\nCourseInfo\x12\x10\n\x08\x63ourseID\x18\x01 \x01(\t\x12\x14\n\x0cisCompulsory\x18\x02 \x01(\x08\x12\x12\n\ncourseType\x18\x03 \x01(\x04\x12\x0e\n\x06\x63redit\x18\x04 \x01(\x04\x12\x0f\n\x07isValid\x18\x05 \x01(\x08\"\x89\x01\n\x0c\x43ourseRecord\x12\x10\n\x08\x63ourseID\x18\x01 \x01(\t\x12\x11\n\tstudentID\x18\x02 \x01(\t\x12\x1b\n\x08protocol\x18\x03 \x01(\x0b\x32\t.Protocol\x12\r\n\x05state\x18\x04 \x01(\x08\x12\x0b\n\x03GPA\x18\x05 \x01(\x04\x12\r\n\x05score\x18\x06 \x01(\x04\x12\x0c\n\x04note\x18\x07 \x01(\t\"\x1b\n\x08Protocol\x12\x0f\n\x07protoID\x18\x01 \x01(\t\"7\n\x03SRT\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x0e\n\x06rating\x18\x02 \x01(\x04\x12\r\n\x05state\x18\x03 \x01(\x04\"K\n\x06School\x12\x10\n\x08schoolID\x18\x01 \x01(\t\x12\x1f\n\rschoolAddress\x18\x02 \x01(\x0b\x32\x08.Address\x12\x0e\n\x06rating\x18\x03 \x01(\x04\">\n\x07Teacher\x12 \n\x0eteacherAddress\x18\x01 \x01(\x0b\x32\x08.Address\x12\x11\n\tteacherID\x18\x02 \x01(\t\"_\n\rSRUploadInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\x12\x1b\n\x08protocol\x18\x03 \x01(\x0b\x32\t.Protocol\x12\x0c\n\x04note\x18\x04 \x01(\t\"2\n\x0bSRDropInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\"_\n\rSRModifyInput\x12\x11\n\tstudentID\x18\x01 \x01(\t\x12\x10\n\x08\x63ourseID\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\x08\x12\x0b\n\x03GPA\x18\x04 \x01(\x04\x12\r\n\x05score\x18\x05 \x01(\x04\x62\x06proto3'
   ,
   dependencies=[types__pb2.DESCRIPTOR,google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,google_dot_protobuf_dot_wrappers__pb2.DESCRIPTOR,])
 
@@ -57,8 +57,15 @@ _COURSEINFO = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='isValid', full_name='CourseInfo.isValid', index=3,
-      number=4, type=8, cpp_type=7, label=1,
+      name='credit', full_name='CourseInfo.credit', index=3,
+      number=4, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='isValid', full_name='CourseInfo.isValid', index=4,
+      number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -76,7 +83,7 @@ _COURSEINFO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=108,
-  serialized_end=197,
+  serialized_end=213,
 )
 
 
@@ -148,8 +155,8 @@ _COURSERECORD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=200,
-  serialized_end=337,
+  serialized_start=216,
+  serialized_end=353,
 )
 
 
@@ -179,8 +186,8 @@ _PROTOCOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=339,
-  serialized_end=366,
+  serialized_start=355,
+  serialized_end=382,
 )
 
 
@@ -224,8 +231,8 @@ _SRT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=368,
-  serialized_end=423,
+  serialized_start=384,
+  serialized_end=439,
 )
 
 
@@ -269,8 +276,8 @@ _SCHOOL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=425,
-  serialized_end=500,
+  serialized_start=441,
+  serialized_end=516,
 )
 
 
@@ -307,8 +314,8 @@ _TEACHER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=502,
-  serialized_end=564,
+  serialized_start=518,
+  serialized_end=580,
 )
 
 
@@ -359,8 +366,8 @@ _SRUPLOADINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=566,
-  serialized_end=661,
+  serialized_start=582,
+  serialized_end=677,
 )
 
 
@@ -397,8 +404,8 @@ _SRDROPINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=663,
-  serialized_end=713,
+  serialized_start=679,
+  serialized_end=729,
 )
 
 
@@ -456,8 +463,8 @@ _SRMODIFYINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=715,
-  serialized_end=810,
+  serialized_start=731,
+  serialized_end=826,
 )
 
 _COURSERECORD.fields_by_name['protocol'].message_type = _PROTOCOL

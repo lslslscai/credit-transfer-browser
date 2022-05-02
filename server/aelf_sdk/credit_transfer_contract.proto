@@ -11,7 +11,8 @@ message CourseInfo {
     string courseID = 1;//course's ID
     bool isCompulsory = 2;//if the course is compulsory, it will be true
     uint64 courseType = 3;//used to identify courses' type (will be defined in constants)
-    bool isValid = 4;//show if the course is valid
+    uint64 credit = 4;
+    bool isValid = 5;//show if the course is valid
 }
 
 message CourseRecord {

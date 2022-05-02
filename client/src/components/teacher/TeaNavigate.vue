@@ -32,7 +32,7 @@
         >添加学生</el-menu-item
       >
     </el-sub-menu>
-    <el-menu-item index="/admin/main/credit_transfer">申请管理</el-menu-item>
+    <el-menu-item index="/admin/main/scoure_admin">成绩登记</el-menu-item>
     <el-menu-item index="5">登出</el-menu-item>
   </el-menu>
 </template>
@@ -44,7 +44,7 @@ const logout = () => {
   let formData = new FormData();
   formData.append("teacherID", document.cookie.split("login=")[1]);
   formData.append("pwd", "undefined");
-  formData.append("pushType", "Logout");
+  formData.append("pushType", "Tea_Logout");
   console.log(document.cookie.split("login=")[1]);
   axios.defaults.withCredentials = true;
   axios.get("http://127.0.0.1:8000/api/connect").then((res) => {

@@ -27,15 +27,53 @@ class cr_handler:
 
         return result['TransactionId']
 
+    def Course_Create(self, input):
+        transfer_input = CourseInfo()
+        transfer_input.isCompulsory = input["isCompulsory"]
+        transfer_input.courseID = input["courseID"]
+        transfer_input.isValid = input["isValid"]
+        transfer_input.courseType = input["courseType"]
+        transfer_input.credit = input["credit"]
+        print("sending transaction")
+        transaction = self.aelfChain.create_transaction(
+            self.contractAddress,
+            "Course_Create",
+            transfer_input.SerializeToString()
+        )
+        transaction = self.aelfChain.sign_transaction(self._priKey, transaction)
+        result = self.aelfChain.send_transaction(transaction.SerializePartialToString().hex())
+
+        return result['TransactionId']
+
+    def Course_Adjust(self, input):
+        transfer_input = CourseInfo()
+        transfer_input.isCompulsory = input["isCompulsory"]
+        transfer_input.courseID = input["courseID"]
+        transfer_input.isValid = input["isValid"]
+        transfer_input.courseType = input["courseType"]
+        transfer_input.credit = input["credit"]
+        print("sending transaction")
+        transaction = self.aelfChain.create_transaction(
+            self.contractAddress,
+            "Course_Adjust",
+            transfer_input.SerializeToString()
+        )
+        transaction = self.aelfChain.sign_transaction(self._priKey, transaction)
+        result = self.aelfChain.send_transaction(transaction.SerializePartialToString().hex())
+
+        return result['TransactionId']
+
     def SRT_Adjust(self, input):
-        transfer_input = SRT()
+        raw = self.get_SRT(input["studentID"])
+        print(raw)
+        transfer_input = self.encodeData()
         transfer_input.studentID = input["studentID"]
-        transfer_input.rating = input["rating"]
-        transfer_input.state = input["state"]
+        transfer_input.rating = raw["rating"]
+        transfer_input.state = input["studentState"]
 
         transaction = self.aelfChain.create_transaction(
             self.contractAddress,
-            "SRT_Create",
+            "SRT_Adjust",
              transfer_input.SerializeToString()
         )
         transaction = self.aelfChain.sign_transaction(self._priKey, transaction)
@@ -58,6 +96,40 @@ class cr_handler:
         ret.ParseFromString(bytes.fromhex(result.decode()))
         formattedRet = self.decodeData(ret, "SRT")
         return formattedRet
+
+    def get_CourseInfo(self, input):
+        transfer_input = StringValue()
+        transfer_input.value = input
+        transaction = self.aelfChain.create_transaction(
+            self.contractAddress,
+            "get_CourseInfo",
+             transfer_input.SerializeToString()
+        )
+        self.aelfChain.sign_transaction(self._priKey, transaction)
+        result = self.aelfChain.execute_transaction(transaction)
+
+        ret = CourseInfo()
+        ret.ParseFromString(bytes.fromhex(result.decode()))
+        formattedRet = self.decodeData(ret, "CourseInfo")
+        return formattedRet
+
+    def SR_Adjust(self, input):
+        transfer_input = SRModifyInput()
+        transfer_input.courseID = input["courseID"]
+        transfer_input.studentID = input["studentID"]
+        transfer_input.state = input["courseState"]
+        transfer_input.score = int(input["score"]*100)
+        transfer_input.GPA = int(input["GPA"]*100)
+        print("sending transaction")
+        transaction = self.aelfChain.create_transaction(
+            self.contractAddress,
+            "SR_Adjust",
+            transfer_input.SerializeToString()
+        )
+        transaction = self.aelfChain.sign_transaction(self._priKey, transaction)
+        result = self.aelfChain.send_transaction(transaction.SerializePartialToString().hex())
+        print(result)
+        return result['TransactionId']
 
     def get_School(self, input):
         transfer_input = StringValue()
@@ -102,23 +174,3 @@ class cr_handler:
             ret["score"] = content.score
             ret["note"] = content.note
             return ret
-
-    def encodeData(content, type):
-        if type == "SRT":
-            ret = SRT()
-        elif type == "School":
-            ret = School()
-        elif type == "courseInfo":
-            ret = CourseInfo()
-        elif type == "courseRecord":
-            ret = CourseRecord()
-        elif type == "teacher":
-            ret = Teacher()
-        elif type == "SRUpdateInput":
-            ret = SRUploadInput()
-        elif type == "SRDropInput":
-            ret = SRDropInput()
-        elif type == "SRModifyInput":
-            ret = SRModifyInput()
-        ret.ParseFromString(bytes.fromhex(content.decode()))
-        return ret

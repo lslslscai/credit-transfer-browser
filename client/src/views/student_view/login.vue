@@ -69,7 +69,7 @@ const submitForm = (formEl: FormInstance | undefined) => {
       let formData = new FormData();
       formData.append("pwd", formEl.$props.model.pwd);
       formData.append("studentID", formEl.$props.model.studentID);
-      formData.append("pushType","Login");
+      formData.append("pushType","Stu_Login");
       axios.defaults.withCredentials = true;
       axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
         console.log(document.cookie)
