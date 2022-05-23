@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="提示"
+    title="学生修改"
     v-model="visible"
     width="60%"
     :before-close="handleClose"
@@ -9,7 +9,7 @@
     <span>{{ text }}</span>
     <el-form :model="form">
       <el-form-item label="学生编号" :label-width="formLabelWidth">
-        <el-input v-model="form.studentID" disabled/>
+        <el-input v-model="form.studentID" disabled />
       </el-form-item>
       <el-form-item label="学生姓名" :label-width="formLabelWidth">
         <el-input v-model="form.studentName" />
@@ -45,11 +45,21 @@
       </span>
     </template>
   </el-dialog>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    :teacherID="teacherID"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
 import { reactive, ref } from "vue";
-import axios from "axios"
+import axios from "axios";
+import Dialog from "./result.vue"
 export default {
   emits: ["closeDialog"],
   props: {
@@ -82,7 +92,16 @@ export default {
     };
   },
   data() {
-    return {};
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      teacherID:"",
+      result: "",
+      state: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
     handleOpen() {
@@ -101,6 +120,9 @@ export default {
         })
         .catch((_) => {});
     },
+    close_dialog() {
+      this.dialogTableVisible = false;
+    },
     select_confirm() {
       this.$confirm("确认修改")
         .then((_) => {
@@ -110,7 +132,7 @@ export default {
             let csrf_token = document.cookie.split("=")[1];
             if (document.cookie.indexOf("login") != -1)
               csrf_token = csrf_token.split(";")[0];
-            let teacherID = document.cookie.split("Tealogin=")[1];
+            this.teacherID = document.cookie.split("Tealogin=")[1];
 
             let formData = new FormData();
             formData.append("studentID", this.$props.data[0]["studentID"]);
@@ -118,11 +140,11 @@ export default {
             formData.append("school", this.form.school);
             formData.append("college", this.form.college);
             formData.append("type", this.form.type);
-            formData.append("studentState", this.form.studentState)
+            formData.append("studentState", this.form.studentState);
             formData.append("pwd", this.form.studentID);
             formData.append("state", 0);
             formData.append("pushType", "SRT_Adjust");
-            formData.append("teacherID", teacherID);
+            formData.append("teacherID", this.teacherID);
 
             axios({
               method: "POST",
@@ -133,7 +155,18 @@ export default {
               data: formData,
               url: "http://127.0.0.1:8000/api/db_manage/adjust/",
             }).then((res) => {
-              console.log(res);
+              console.log(res.data);
+              if (res.data["txRet"] != undefined) {
+                this.txID = res.data["txRet"];
+                console.log(this.txID);
+                this.result = "修改完成！请检查区块链交易结果";
+                this.dialogTableVisible = true;
+                this.state = "db_succ";
+              } else {
+                this.result = "修改失败！" + res.data;
+                this.dialogTableVisible = true;
+                this.state = "db_fail";
+              }
               this.$emit("closeDialog");
             });
           });

@@ -1,101 +1,105 @@
 <template>
-  <el-button @click="addSchool">添加学校</el-button>
-  <el-form :model="schoolForm">
-    <el-form-item label="学校ID" :label-width="width">
-      <el-input v-model="schoolForm.schoolID" />
-    </el-form-item>
-    <el-form-item label="学校名称" :label-width="width">
-      <el-input v-model="schoolForm.schoolName" />
-    </el-form-item>
-    <el-form-item label="密码" :label-width="width">
-      <el-input v-model="schoolForm.schoolPwd" />
-    </el-form-item>
-  </el-form>
-  <el-button @click="confirmSelect">确认选课</el-button>
-  <el-button @click="testApproveAndTransfer">测试1</el-button>
+  <div class="loading">加载中</div>
+  <div class="content" hidden="hidden">
+    <el-button @click="addSchool">添加学校</el-button>
+    <el-form :model="schoolForm">
+      <el-form-item label="学校钱包密钥" :label-width="width">
+        <el-input v-model="schoolForm.schoolPriKey" />
+      </el-form-item>
+      <el-form-item label="学校ID" :label-width="width">
+        <el-input v-model="schoolForm.schoolID" />
+      </el-form-item>
+      <el-form-item label="学校名称" :label-width="width">
+        <el-input v-model="schoolForm.schoolName" />
+      </el-form-item>
+      <el-form-item label="密码" :label-width="width">
+        <el-input v-model="schoolForm.schoolPwd" />
+      </el-form-item>
+    </el-form>
+    <el-button @click="confirmSelect">确认选课</el-button>
+    <el-button @click="testApproveAndTransfer">测试1</el-button>
+  </div>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
 import { ref, reactive } from "vue";
 import AElf from "aelf-sdk";
 import axios from "axios";
-
-var url = "mongodb://localhost:27017";
+import { useRoute } from "vue-router";
+import Dialog from "./result.vue";
 const tokenContractName = "AElf.ContractNames.Token";
-const adminPriKey =
-  "6fb5eee18c69b147b4f75a0cfc640ea457f69741e7e3c3f07eede7348dba0c9b";
 const CRAddress = "2LUmicHyH4RXrMjG4beDwuDsiWJESyLkgkwPdGTR8kahRzq5XS";
 export default {
   setup() {
     const width = "200px";
+    const r = useRoute();
     const aelf = new AElf(
-      new AElf.providers.HttpProvider("http://127.0.0.1:1235")
+      new AElf.providers.HttpProvider("http://127.0.0.1:" + r.params.ip)
     );
     if (!aelf.isConnected()) console.log("Blockchain Node is not running.");
-    const adminWallet = AElf.wallet.getWalletByPrivateKey(adminPriKey);
     const schoolForm = reactive({
       schoolID: "",
       schoolName: "",
       schoolPwd: "",
+      schoolPriKey: "",
     });
-    let CRContract;
-    (async () => {
-      // get chain status
-      CRContract = await aelf.chain.contractAt(CRAddress, adminWallet);
-      console.log(CRContract);
-      CRContract.Initialize().then(
-        setTimeout((ret) => {
-          console.log(ret);
-          CRContract.get_AdminAddress.call().then((ret) => {
-            console.log(ret);
-            var schoolInfo = {
-              schoolID: "00001",
-              schoolAddress: adminWallet.address,
-              rating: 0,
-            };
-            let formData = new FormData();
-            formData.append("schoolID", "00001");
-            formData.append("schoolName", "超级管理员");
-            formData.append("state", 1);
-            axios
-              .get(
-                "http://127.0.0.1:8000/api/db_admin/select/?type=school&filter=00001"
-              )
-              .then((res) => {
-                console.log(res.data);
-                if (res.data == "no data!") {
-                  CRContract.School_Register(schoolInfo).then((txID) => {
-                    console.log(txID);
-                    axios.defaults.withCredentials = true;
-                    axios
-                      .get("http://127.0.0.1:8000/api/connect")
-                      .then((res) => {
-                        let csrf_token = document.cookie.split("=")[1];
-                        axios({
-                          method: "POST",
-                          headers: {
-                            "X-Requested-With": "XMLHttpRequest",
-                            "X-CSRFToken": csrf_token,
-                          },
-                          data: formData,
-                          url: "http://127.0.0.1:8000/api/db_admin/adjust/",
-                        }).then((res) => {
-                          console.log(res);
-                        });
-                      });
-                  });
-                }
+    const adminWallet = ref();
+    axios
+      .get(
+        "http://127.0.0.1:8000/api/db_admin/select/?type=school&filter=00001"
+      )
+      .then((res) => {
+        let wallet = AElf.wallet.getWalletByPrivateKey(res.data.priKey);
+        let CRContract;
+        (async () => {
+          // get chain status
+          CRContract = await aelf.chain.contractAt(CRAddress, wallet);
+          CRContract.Initialize().then(
+            setTimeout(() => {
+              var schoolInfo = {
+                schoolID: "00001",
+                schoolAddress: wallet.address,
+                rating: 0,
+              };
+              CRContract.School_Register(schoolInfo).then((txID) => {
+                adminWallet.value = wallet;
+                alert("超级管理员初始化成功！");
+                var loadingModule =
+                  document.getElementsByClassName("loading")[0];
+                var mainModule = document.getElementsByClassName("content")[0];
+                loadingModule.setAttribute("style", "display:none");
+                mainModule.removeAttribute("hidden");
               });
-          });
-        }, 5000)
-      );
-    })();
+            }, 5000)
+          );
+        })();
+      });
+
     return {
       aelf: aelf,
       schoolForm: schoolForm,
       width: width,
       wallet: adminWallet,
     };
+  },
+  data() {
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      result: "",
+      state: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
     testApproveAndTransfer() {
@@ -152,7 +156,9 @@ export default {
       (async () => {
         // get chain status
         CRContract = await this.aelf.chain.contractAt(CRAddress, this.wallet);
-        const newWallet = AElf.wallet.createNewWallet();
+        const newWallet = AElf.wallet.getWalletByPrivateKey(
+          this.schoolForm.schoolPriKey
+        );
         console.log(CRContract);
         var schoolInfo = {
           schoolID: this.schoolForm["schoolID"],
@@ -165,22 +171,32 @@ export default {
         formData.append("priKey", newWallet.privateKey);
         formData.append("state", 0);
         formData.append("pwd", this.schoolForm.schoolPwd);
-        CRContract.School_Register(schoolInfo).then((txID) => {
-          console.log(txID);
-          axios.defaults.withCredentials = true;
-          axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
-            let csrf_token = document.cookie.split("=")[1];
-            axios({
-              method: "POST",
-              headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": csrf_token,
-              },
-              data: formData,
-              url: "http://127.0.0.1:8000/api/db_admin/adjust/",
-            }).then((res) => {
-              console.log(res);
-            });
+        axios.defaults.withCredentials = true;
+        axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
+          let csrf_token = document.cookie.split("=")[1];
+          axios({
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": csrf_token,
+            },
+            data: formData,
+            url: "http://127.0.0.1:8000/api/db_admin/adjust/",
+          }).then((res) => {
+            console.log(res);
+            if (res.data == "register succ!") {
+              CRContract.School_Register(schoolInfo).then((txID) => {
+                this.txID = txID["TransactionId"];
+                console.log(this.txID);
+                this.result = "数据库完成修改！请检查区块链交易结果";
+                this.dialogTableVisible = true;
+                this.state = "db_succ";
+              });
+            } else {
+              this.result = "数据库失败！" + res.data;
+              this.dialogTableVisible = true;
+              this.state = "db_fail";
+            }
           });
         });
       })();
@@ -264,6 +280,10 @@ export default {
           });
         });
     },
+
+    close_dialog() {
+      this.dialogTableVisible = false;
+    },
   },
 };
 </script>
@@ -271,5 +291,10 @@ export default {
 <style scoped>
 a {
   color: #42b983;
+}
+.loading {
+  color: rgb(162, 162, 162);
+  margin-top: 5rem;
+  font-size: 2rem;
 }
 </style>

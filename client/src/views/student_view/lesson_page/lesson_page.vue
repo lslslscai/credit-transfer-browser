@@ -47,7 +47,7 @@ export default {
                     courseID
                 )
                 .then((res2) => {
-                  console.log(res2.data["course"]["courseName"])
+                  console.log(res2.data["course"])
                   element["courseName"] = res2.data["course"]["courseName"];
                   element["credit"] = res2.data["course"]["credit"];
                   element["courseType"] = res2.data["course"]["courseType"];
@@ -56,10 +56,13 @@ export default {
                   ]
                     ? "必修"
                     : "选修";
-                  if (element["courseState"] == undefined) {
-                    console.log("in!");
+                  if (element["pushType"] == "SR_Select") {
                     element["courseState"] = "申请中";
-                  } else {
+                  } 
+                  else if(element["pushType"] == "SR_Drop"){
+                    element["courseState"] = "退课中";
+                  }
+                  else {
                     element["courseState"] = element["courseState"]
                       ? "结课"
                       : "在读";

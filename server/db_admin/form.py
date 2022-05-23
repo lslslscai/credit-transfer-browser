@@ -1,6 +1,7 @@
 from cProfile import label
 from django import forms
 from django.core.exceptions import ValidationError
+import blockchain_manage
 from db_manage import models
 
 class SchoolForm(forms.Form):
@@ -10,6 +11,11 @@ class SchoolForm(forms.Form):
     state = forms.IntegerField(label="类型")
     pwd = forms.CharField(required=False, label="密码")
 
+class loginForm(forms.Form):
+    schoolID = forms.CharField(min_length=5, max_length=5, label="学校ID")
+    schoolPwd = forms.CharField(label="学校名称")
+    blockchainIP = forms.CharField(label="服务器IP")
+    
 class CollegeForm(forms.Form):
     collegeID = forms.CharField(min_length=3, max_length=3, label="学院ID")
     collegeName = forms.CharField(label="学院名称")
@@ -20,6 +26,7 @@ class TeaForm(forms.Form):
     pwd = forms.CharField(label="密码")
     state = forms.IntegerField(label="类型")
     priKey = forms.CharField(label="密钥")
+    sender = forms.CharField(label="发送者")
 
 class CourseRecordForm(forms.Form):
     studentID = forms.CharField(min_length=15, max_length=15,label="学生ID")

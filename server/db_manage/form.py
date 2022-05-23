@@ -6,7 +6,7 @@ class SRDropInput(forms.Form):
     studentID = forms.CharField(min_length=15, max_length=15, label="学生ID") #student that have the course
     courseID = forms.CharField(min_length=12, max_length=12, label="课程ID") #course that is selected
     pushType = forms.CharField(label="类型")
-    
+
 class SRTForm(forms.Form):
     studentID = forms.CharField(min_length=15, max_length=15,label="学生ID")
     studentName = forms.CharField(label="学生姓名")

@@ -8,10 +8,17 @@ from google.protobuf.wrappers_pb2 import StringValue
 import pickle
 
 class cr_handler:
-    def __init__(self, priKey) -> None:
-        self.aelfChain = AElf('http://127.0.0.1:1235')
+    def __init__(self, priKey, ip) -> None:
+        self.aelfChain = AElf('http://'+ip)
         self._priKey = priKey
         self.contractAddress = str("2LUmicHyH4RXrMjG4beDwuDsiWJESyLkgkwPdGTR8kahRzq5XS")
+
+    def getTransactionResult(self, input):
+        ret = self.aelfChain.get_transaction_result(input)
+        print(type(ret))
+
+        formattedRet = dict()
+        return ret
 
     def SRT_Create(self, input):
         transfer_input = StringValue()
@@ -66,7 +73,7 @@ class cr_handler:
     def SRT_Adjust(self, input):
         raw = self.get_SRT(input["studentID"])
         print(raw)
-        transfer_input = self.encodeData()
+        transfer_input = SRT()
         transfer_input.studentID = input["studentID"]
         transfer_input.rating = raw["rating"]
         transfer_input.state = input["studentState"]
@@ -142,7 +149,7 @@ class cr_handler:
         self.aelfChain.sign_transaction(self._priKey, transaction)
         result = self.aelfChain.execute_transaction(transaction)
 
-        ret = SRT()
+        ret = School()
         ret.ParseFromString(bytes.fromhex(result.decode()))
         formattedRet = self.decodeData(ret, "School")
         return formattedRet

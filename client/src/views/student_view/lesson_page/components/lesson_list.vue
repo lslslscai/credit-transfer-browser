@@ -19,10 +19,20 @@
       </el-table-column>
     </el-table>
   </div>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    :teacherID="teacherID"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
 import axios from "axios";
+import Dialog from "../../../../components/dialog/result.vue";
 export default {
   props: {
     tableData: {
@@ -31,15 +41,33 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      result: "",
+      state: "",
+      teacherID: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
+    close_dialog() {
+      this.dialogTableVisible = false;
+    },
     drop_lesson(row, column, event) {
       if (row["courseState"] == "结课") {
         this.$confirm("这门课已经结课，不可退课！")
           .then((_) => {})
           .catch((_) => {});
-      } else {
+      }
+      else if(row["courseState"] == "退课中"){
+        this.$confirm("正在退课，请等待结果！")
+          .then((_) => {})
+          .catch((_) => {});
+      }
+      else {
         this.$confirm("确认退选这门课吗？")
           .then((_) => {
             axios.defaults.withCredentials = true;
@@ -64,6 +92,15 @@ export default {
                 url: "http://127.0.0.1:8000/api/db_manage/adjust/",
               }).then((res) => {
                 console.log(res);
+                if (res.data == "drop succ!") {
+                  this.result = "修改完成！";
+                  this.dialogTableVisible = true;
+                  this.state = "no_trans";
+                } else {
+                  this.result = "修改失败！" + res.data;
+                  this.dialogTableVisible = true;
+                  this.state = "no_trans";
+                }
               });
             });
           })

@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="提示"
+    title="选课"
     v-model="visible"
     width="50%"
     :before-close="handleClose"
@@ -26,10 +26,20 @@
       </span>
     </template>
   </el-dialog>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    :teacherID="teacherID"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
 import axios from "axios";
+import Dialog from "./result.vue";
 
 export default {
   emits: ["closeDialog"],
@@ -48,7 +58,16 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      result: "",
+      state: "",
+      teacherID: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
     handleClose(done) {
@@ -57,6 +76,9 @@ export default {
           done();
         })
         .catch((_) => {});
+    },
+    close_dialog() {
+      this.dialogTableVisible = false;
     },
     select_confirm() {
       this.$confirm("确定选这门课了吗？")
@@ -69,18 +91,21 @@ export default {
               csrf_token = csrf_token.split(";")[0];
             const studentID = document.cookie.split("Stulogin=")[1];
             let protocol = JSON.stringify({
-              "startDate": this.data[0]["protocol"].startDate,
-              "projectDate": this.data[0]["protocol"].projectDate,
-              "testDate": this.data[0]["protocol"].testDate,
-              "rateOfTest": this.data[0]["protocol"].rateOfTest,
-              "rateOfProject": this.data[0]["protocol"].rateOfProject,
+              startDate: this.data[0]["protocol"].startDate,
+              projectDate: this.data[0]["protocol"].projectDate,
+              testDate: this.data[0]["protocol"].testDate,
+              rateOfTest: this.data[0]["protocol"].rateOfTest,
+              rateOfProject: this.data[0]["protocol"].rateOfProject,
             });
             let formData = new FormData();
-            formData.append("courseID", this.data[0]['courseID']);
+            formData.append("courseID", this.data[0]["courseID"]);
             formData.append("studentID", studentID);
             formData.append("protocol", protocol);
-            formData.append("note", studentID+" selects "+this.data[0]['courseID'])
-            formData.append("pushType", "SR_Select")
+            formData.append(
+              "note",
+              studentID + " selects " + this.data[0]["courseID"]
+            );
+            formData.append("pushType", "SR_Select");
             axios({
               method: "POST",
               headers: {
@@ -89,11 +114,22 @@ export default {
               },
               data: formData,
               url: "http://127.0.0.1:8000/api/db_manage/adjust/",
-            }).then((res) => {
-              console.log(res);
-              this.$emit("closeDialog");
-            });
-          })
+            })
+              .then((res) => {
+                console.log(res);
+                if (res.data == "select succ!") {
+                  this.result = "修改完成！";
+                  this.dialogTableVisible = true;
+                  this.state = "no_trans";
+                } else {
+                  this.result = "修改失败！" + res.data;
+                  this.dialogTableVisible = true;
+                  this.state = "no_trans";
+                }
+                this.$emit("closeDialog");
+              })
+              .catch((res) => {});
+          });
         })
         .catch((_) => {});
     },

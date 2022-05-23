@@ -10,11 +10,11 @@ const routes = [
     component: helloWorld
   },
   {
-    path: '/admin',
+    path: '/admin/:ip',
     component: admin
   },
   {
-    path: '/school/:id',
+    path: '/school/:id/:ip',
     component: school
   },
 ]

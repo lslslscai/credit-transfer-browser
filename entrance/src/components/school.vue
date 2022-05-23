@@ -1,5 +1,4 @@
 <template>
-  <h1>{{ msg }}</h1>
   <el-button @click="addTeacher">添加教师</el-button>
   <el-form :model="teacherForm">
     <el-form-item label="教师ID" :label-width="width">
@@ -22,7 +21,14 @@
     </el-form-item>
   </el-form>
   <br />
-  <el-button @click="check">查看学校</el-button>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
@@ -30,22 +36,19 @@ import { ref, reactive } from "vue";
 import AElf from "aelf-sdk";
 import axios from "axios";
 import { useRoute } from "vue-router";
-
+import Dialog from "./result.vue";
 const CRAddress = "2LUmicHyH4RXrMjG4beDwuDsiWJESyLkgkwPdGTR8kahRzq5XS";
 export default {
   setup() {
     const count = ref(0);
     const width = "200px";
+    const r = useRoute();
+    console.log(r.params);
     const aelf = new AElf(
-      new AElf.providers.HttpProvider("http://127.0.0.1:1235")
+      new AElf.providers.HttpProvider("http://127.0.0.1:" + r.params.ip)
     );
     const wallet = ref();
     if (!aelf.isConnected()) console.log("Blockchain Node is not running.");
-    const r = useRoute();
-    console.log(
-      "http://127.0.0.1:8000/api/db_admin/select/?type=school&filter=" +
-        r.params.id
-    );
     axios
       .get(
         "http://127.0.0.1:8000/api/db_admin/select/?type=school&filter=" +
@@ -53,8 +56,8 @@ export default {
       )
       .then((res) => {
         console.log(res);
-        wallet.value = AElf.wallet.getWalletByPrivateKey(res.data.priKey);
-        console.log(wallet);
+        let w = AElf.wallet.getWalletByPrivateKey(res.data.priKey);
+        wallet.value = w;
       });
     const teacherForm = reactive({
       teacherID: "",
@@ -75,29 +78,23 @@ export default {
     };
   },
   data() {
-    return {};
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      result: "",
+      state: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
-    check() {
-      let CRContract;
-      (async () => {
-        // get chain status
-        const newWallet = AElf.wallet.createNewWallet();
-        CRContract = await this.aelf.chain.contractAt(CRAddress, this.wallet);
-        console.log(CRContract);
-        CRContract.get_School
-          .call({ value: this.$route.params.id })
-          .then((res) => {
-            console.log(res.schoolAddress);
-            console.log(this.wallet.address)
-          });
-      })();
-    },
     addTeacher() {
       let CRContract;
       (async () => {
         // get chain status
         const newWallet = AElf.wallet.createNewWallet();
+        console.log(this.wallet);
         CRContract = await this.aelf.chain.contractAt(CRAddress, this.wallet);
         console.log(CRContract);
         var teacherlInfo = {
@@ -110,22 +107,33 @@ export default {
         formData.append("pwd", this.teacherForm.pwd);
         formData.append("state", "0");
         formData.append("priKey", newWallet.privateKey);
-        CRContract.Teacher_Register(teacherlInfo).then((txID) => {
-          console.log(txID);
-          axios.defaults.withCredentials = true;
-          axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
-            let csrf_token = document.cookie.split("=")[1];
-            axios({
-              method: "POST",
-              headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": csrf_token,
-              },
-              data: formData,
-              url: "http://127.0.0.1:8000/api/db_admin/adjust/",
-            }).then((res) => {
-              console.log(res);
-            });
+        formData.append("sender", this.$route.params.id);
+        axios.defaults.withCredentials = true;
+        axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
+          let csrf_token = document.cookie.split("=")[1];
+          axios({
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": csrf_token,
+            },
+            data: formData,
+            url: "http://127.0.0.1:8000/api/db_admin/adjust/",
+          }).then((res) => {
+            console.log(res);
+            if (res.data == "register succ!") {
+              CRContract.Teacher_Register(teacherlInfo).then((txID) => {
+                this.txID = txID["TransactionId"];
+                console.log(this.txID);
+                this.result = "数据库完成修改！请检查区块链交易结果";
+                this.dialogTableVisible = true;
+                this.state = "db_succ";
+              });
+            } else {
+              this.result = "数据库失败！" + res.data;
+              this.dialogTableVisible = true;
+              this.state = "db_fail";
+            }
           });
         });
       })();
@@ -148,8 +156,21 @@ export default {
           url: "http://127.0.0.1:8000/api/db_admin/adjust/",
         }).then((res) => {
           console.log(res);
+          if (res.data == "create succ!") {
+            this.txID = "";
+            this.result = "数据库完成修改！";
+            this.dialogTableVisible = true;
+            this.state = "no_tran";
+          } else {
+            this.result = "数据库失败！" + res.data;
+            this.dialogTableVisible = true;
+            this.state = "db_fail";
+          }
         });
       });
+    },
+    close_dialog() {
+      this.dialogTableVisible = false;
     },
   },
 };

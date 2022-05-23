@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="提示"
+    title="成绩登记"
     v-model="visible"
     width="60%"
     :before-close="handleClose"
@@ -8,22 +8,22 @@
   >
     <el-form :model="form">
       <el-form-item label="课程编号">
-        <el-input v-model="form.courseID" disabled/>
+        <el-input v-model="form.courseID" disabled />
       </el-form-item>
       <el-form-item label="课程名称">
-        <el-input v-model="form.courseName" disabled/>
+        <el-input v-model="form.courseName" disabled />
       </el-form-item>
       <el-form-item label="学生编号">
-        <el-input v-model="form.studentID" disabled/>
+        <el-input v-model="form.studentID" disabled />
       </el-form-item>
       <el-form-item label="课程名称">
-        <el-input v-model="form.studentName" disabled/>
+        <el-input v-model="form.studentName" disabled />
       </el-form-item>
       <el-form-item label="成绩">
-        <el-input v-model="form.score" @change="calGPA"/>
+        <el-input v-model="form.score" @change="calGPA" />
       </el-form-item>
       <el-form-item label="绩点">
-        <el-input v-model="form.GPA" disabled/>
+        <el-input v-model="form.GPA" disabled />
       </el-form-item>
       <el-form-item>
         <el-checkbox v-model="form.failed">是否挂科</el-checkbox>
@@ -36,11 +36,21 @@
       </span>
     </template>
   </el-dialog>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    :teacherID="teacherID"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 
 <script>
 import { reactive, ref } from "vue";
-import axios from "axios"
+import axios from "axios";
+import Dialog from "./result.vue";
 export default {
   emits: ["closeDialog"],
   props: {
@@ -62,7 +72,7 @@ export default {
       studentName: "",
       score: "",
       GPA: "",
-      failed:false
+      failed: false,
     });
     return {
       formLabelWidth,
@@ -70,20 +80,29 @@ export default {
     };
   },
   data() {
-    return {};
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      teacherID: "",
+      result: "",
+      state: "",
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
-    calGPA(){
-      if(this.form.score >= 90) this.form.GPA = 4.0
-      else if(this.form.score >= 85) this.form.GPA = 3.7
-      else if(this.form.score >= 82) this.form.GPA = 3.3
-      else if(this.form.score >= 78) this.form.GPA = 3.0
-      else if(this.form.score >= 75) this.form.GPA = 2.7
-      else if(this.form.score >= 72) this.form.GPA = 2.3
-      else if(this.form.score >= 68) this.form.GPA = 2.0
-      else if(this.form.score >= 64) this.form.GPA = 1.5
-      else if(this.form.score >= 60) this.form.GPA = 1.0
-      else this.form.GPA = 0
+    calGPA() {
+      if (this.form.score >= 90) this.form.GPA = 4.0;
+      else if (this.form.score >= 85) this.form.GPA = 3.7;
+      else if (this.form.score >= 82) this.form.GPA = 3.3;
+      else if (this.form.score >= 78) this.form.GPA = 3.0;
+      else if (this.form.score >= 75) this.form.GPA = 2.7;
+      else if (this.form.score >= 72) this.form.GPA = 2.3;
+      else if (this.form.score >= 68) this.form.GPA = 2.0;
+      else if (this.form.score >= 64) this.form.GPA = 1.5;
+      else if (this.form.score >= 60) this.form.GPA = 1.0;
+      else this.form.GPA = 0;
     },
     handleOpen() {
       console.log(this.$props.data[0]);
@@ -101,17 +120,20 @@ export default {
         })
         .catch((_) => {});
     },
+    close_dialog() {
+      this.dialogTableVisible = false;
+    },
     select_confirm() {
       this.$confirm("确认修改？")
         .then((_) => {
-          console.log(this.form)
+          console.log(this.form);
           axios.defaults.withCredentials = true;
           axios.get("http://127.0.0.1:8000/api/connect").then((res) => {
             console.log(document.cookie);
             let csrf_token = document.cookie.split("=")[1];
             if (document.cookie.indexOf("login") != -1)
               csrf_token = csrf_token.split(";")[0];
-            let teacherID = document.cookie.split("Tealogin=")[1];
+            this.teacherID = document.cookie.split("Tealogin=")[1];
 
             let formData = new FormData();
             formData.append("courseID", this.form.courseID);
@@ -119,7 +141,7 @@ export default {
             formData.append("score", this.form.score);
             formData.append("GPA", this.form.GPA);
             formData.append("pushType", "SR_Adjust");
-            formData.append("teacherID", teacherID);
+            formData.append("teacherID", this.teacherID);
             formData.append("courseState", true);
             axios({
               method: "POST",
@@ -130,7 +152,18 @@ export default {
               data: formData,
               url: "http://127.0.0.1:8000/api/db_manage/adjust/",
             }).then((res) => {
-              console.log(res);
+              console.log(res.data);
+              if (res.data["txRet"] != undefined) {
+                this.txID = res.data["txRet"];
+                console.log(this.txID);
+                this.result = "修改完成！请检查区块链交易结果";
+                this.dialogTableVisible = true;
+                this.state = "db_succ";
+              } else {
+                this.result = "修改失败！" + res.data;
+                this.dialogTableVisible = true;
+                this.state = "db_fail";
+              }
               this.$emit("closeDialog");
             });
           });
@@ -143,7 +176,7 @@ export default {
           this.$emit("closeDialog");
         })
         .catch((_) => {});
-    }
+    },
   },
 };
 </script>

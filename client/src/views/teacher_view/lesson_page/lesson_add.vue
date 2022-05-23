@@ -95,10 +95,20 @@
     </el-form>
   </el-form>
   <el-button type="primary" size="large" @click="submit">提交</el-button>
+
+  <Dialog
+    v-bind:visible="dialogTableVisible"
+    :txID="txID"
+    :text="result"
+    :state="state"
+    :teacherID="teacherID"
+    v-on:closeDialog="close_dialog"
+  />
 </template>
 <script>
 import { ref, reactive } from "vue";
 import axios from "axios";
+import Dialog from "../../../components/dialog/result.vue"
 export default {
   setup() {
     const form = reactive({
@@ -122,6 +132,18 @@ export default {
     return {
       form,
     };
+  },
+  data() {
+    return {
+      dialogTableVisible: false,
+      txID: "",
+      result: "",
+      state: "",
+      teacherID:""
+    };
+  },
+  components: {
+    Dialog,
   },
   methods: {
     autoComplete() {
@@ -148,6 +170,9 @@ export default {
       console.log(ret);
       return ret;
     },
+    close_dialog() {
+      this.dialogTableVisible = false;
+    },
     submit() {
       let start = this.dateTrans(this.form.protocol.startDate);
       let test = this.dateTrans(this.form.protocol.testDate);
@@ -158,7 +183,7 @@ export default {
         let csrf_token = document.cookie.split("=")[1];
         if (document.cookie.indexOf("login") != -1)
           csrf_token = csrf_token.split(";")[0];
-        let teacherID = document.cookie.split("Tealogin=")[1];
+        this.teacherID = document.cookie.split("Tealogin=")[1];
         let protocol = JSON.stringify({
           "startDate": start,
           "projectDate": project,
@@ -176,7 +201,7 @@ export default {
         formData.append("isValid", this.form.isValid);
         formData.append("capacity", this.form.capacity);
         formData.append("pushType", "Course_Create");
-        formData.append("teacherID", teacherID);
+        formData.append("teacherID", this.teacherID);
         formData.append("credit", this.form.credit);
         formData.append("protocol", protocol);
         console.log(formData);
@@ -189,7 +214,18 @@ export default {
           data: formData,
           url: "http://127.0.0.1:8000/api/db_manage/adjust/",
         }).then((res) => {
-          console.log(res);
+          console.log(res.data);
+          if (res.data["txRet"] != undefined) {
+            this.txID = res.data["txRet"];
+            console.log(this.txID);
+            this.result = "修改完成！请检查区块链交易结果";
+            this.dialogTableVisible = true;
+            this.state = "db_succ";
+          } else {
+            this.result = "修改失败！" + res.data;
+            this.dialogTableVisible = true;
+            this.state = "db_fail";
+          }
         });
       });
     },

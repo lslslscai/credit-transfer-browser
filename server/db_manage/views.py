@@ -24,14 +24,16 @@ def searchRes(request):
         elif request.GET.get('type') == "courseRecord":
             return getCourseRecord(request.GET.get('filter'), request.GET.get("value"))
         elif request.GET.get('type') == "CRCache":
-            return getCRCache(request.GET.get('filter'), request.GET.get("action"))
+            return getCRCache(request.GET.get('filter'))
+        elif request.GET.get('type') == "txRet":
+            return getTransactionRet(request.GET.get('teacherID'), request.GET.get('txID'))
     else:
         return HttpResponse("invalid request!")
 
 
 def getSchool(flt):
     if flt == "all":
-        raw = getDataFromDB("CreditTransferDB", "schoolInfo", {}, "all")
+        raw = getDataFromDB("CreditTransferDB", "schoolInfo", {"schoolID":{"$nin": ["00001"]}}, "all")
         if raw.__len__() == 0:
             return HttpResponse("invalid query!")
         for i in raw:
@@ -51,14 +53,17 @@ def getSchool(flt):
         print(ret)
         return JsonResponse(ret)
 
-def getCRCache(flt, action):
-    raw = getDataFromDB("CreditTransferDB", "CRCache", {"studentID" : flt, "pushType" : action}, "all")
+
+def getCRCache(flt):
+    raw = getDataFromDB("CreditTransferDB", "CRCache",
+                        {"studentID": flt}, "all")
     ret = {}
     for i in raw:
         del i["_id"]
     ret["record"] = raw
     print(ret)
     return JsonResponse(ret)
+
 
 def getCourseRecord(flt, value):
     if flt == "student":
@@ -103,8 +108,13 @@ def getCollege(flt):
 
 
 def getStudent(flt):
-    if flt == "all":
-        raw = getDataFromDB("CreditTransferDB", "studentInfo", "", "all")
+    if flt == "all" or flt.find('^') != -1:
+        if flt.find('^') != -1:
+            print("in")
+            raw = getDataFromDB("CreditTransferDB", "studentInfo", {
+                "studentID": {"$regex": flt}}, "all")
+        else:
+            raw = getDataFromDB("CreditTransferDB", "studentInfo", "", "all")
         if raw.__len__() == 0:
             return HttpResponse("invalid query!")
         for i in raw:
@@ -142,7 +152,7 @@ def getCourseInfo(flt: str):
         if flt.find('^') != -1:
             print("in")
             raw = getDataFromDB("CreditTransferDB", "courseInfo", {
-                "courseID": {"$regex": "^10056216"}}, "all")
+                "courseID": {"$regex": flt}}, "all")
         else:
             raw = getDataFromDB("CreditTransferDB", "courseInfo", "", "all")
         print(raw)
@@ -166,23 +176,37 @@ def getCourseInfo(flt: str):
         return JsonResponse(ret)
 
 
+def getTransactionRet(teacherID, txID):
+    teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
+                                {"teacherID": teacherID}, "one")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": teacherID[0:5]}, "one")
+    handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
+    print("checking")
+    ret = dict()
+    ret = handler.getTransactionResult(txID)
+    return JsonResponse(ret)
+
+
 def StuRegister(data: dict):
     teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
                                 {"teacherID": data["teacherID"]}, "one")
-    if teacherInfo == None:
-        return HttpResponse("invalid login req!")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": data["teacherID"][0:5]}, "one")
+    if teacherInfo == None or schoolInfo == None:
+        return HttpResponse("sender identification error!")
 
     raw = getDataFromDB("CreditTransferDB", "studentInfo",
                         {"studentID": data["studentID"]}, "one")
     if raw != None:
-        return HttpResponse("invalid login req!")
+        return HttpResponse("already registered!")
     del data["pushType"]
     del data["teacherID"]
     data["studentState"] = "在读"
     insertRet = insertDataToDB("CreditTransferDB", "studentInfo", data)
 
     if insertRet.inserted_id != None:
-        handler = cr_handler(teacherInfo["priKey"])
+        handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
         ret = dict()
         ret["txRet"] = handler.SRT_Create(data)
         return JsonResponse(ret)
@@ -192,13 +216,15 @@ def StuRegister(data: dict):
 def CourseCreate(data: dict):
     teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
                                 {"teacherID": data["teacherID"]}, "one")
-    if teacherInfo == None:
-        return HttpResponse("invalid create req!")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": data["teacherID"][0:5]}, "one")
+    if teacherInfo == None or schoolInfo == None:
+        return HttpResponse("sender identification error!")
 
     raw = getDataFromDB("CreditTransferDB", "courseInfo",
                         {"courseID": data["courseID"]}, "one")
     if raw != None:
-        return HttpResponse("invalid create req!")
+        return HttpResponse("already created!")
     del data["pushType"]
     del data["teacherID"]
 
@@ -215,8 +241,8 @@ def CourseCreate(data: dict):
         elif data["courseType"] == "课外课程":
             data["courseType"] = 3
         data["credit"] = int(data["credit"] * 100)
-
-        handler = cr_handler(teacherInfo["priKey"])
+        print(data)
+        handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
         ret = dict()
         ret["txRet"] = handler.Course_Create(data)
         return JsonResponse(ret)
@@ -226,20 +252,21 @@ def CourseCreate(data: dict):
 def CourseModify(data: dict):
     teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
                                 {"teacherID": data["teacherID"]}, "one")
-    if teacherInfo == None:
-        return HttpResponse("invalid sender!")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": data["teacherID"][0:5]}, "one")
+    if teacherInfo == None or schoolInfo == None:
+        return HttpResponse("sender identification error!")
     raw = getDataFromDB("CreditTransferDB", "courseInfo",
                         {"courseID": data["courseID"]}, "one")
     if raw == None:
         return HttpResponse("invalid req!")
     del data["pushType"]
     del data["teacherID"]
-    print(data)
     adjRet = findAndReplace("CreditTransferDB", "courseInfo", {
                             "courseID": data["courseID"]}, data)
 
     if adjRet != None:
-        handler = cr_handler(teacherInfo["priKey"])
+        handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
         if data["courseType"] == "课内课程":
             data["courseType"] = 0
         elif data["courseType"] == "校内跨专业课程":
@@ -250,6 +277,7 @@ def CourseModify(data: dict):
             data["courseType"] = 3
         data["credit"] = int(data["credit"] * 100)
         ret = dict()
+        print(data)
         ret["txRet"] = handler.Course_Adjust(data)
         return JsonResponse(ret)
     return HttpResponse("register failed!")
@@ -258,8 +286,10 @@ def CourseModify(data: dict):
 def StuAdjust(data: dict):
     teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
                                 {"teacherID": data["teacherID"]}, "one")
-    if teacherInfo == None:
-        return HttpResponse("invalid sender!")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": data["teacherID"][0:5]}, "one")
+    if teacherInfo == None or schoolInfo == None:
+        return HttpResponse("sender identification error!")
     raw = getDataFromDB("CreditTransferDB", "studentInfo",
                         {"studentID": data["studentID"]}, "one")
     if raw == None:
@@ -271,7 +301,7 @@ def StuAdjust(data: dict):
                             "studentID": data["studentID"]}, data)
 
     if adjRet != None:
-        handler = cr_handler(teacherInfo["priKey"])
+        handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
         if data["studentState"] == "在读":
             data["studentState"] = 0
         if data["studentState"] == "毕业":
@@ -296,10 +326,12 @@ def SRSelect(data: dict):
         return HttpResponse("already selected!")
     raw = getDataFromDB("CreditTransferDB", "studentInfo",
                         {"studentID": data["studentID"], "state": 1}, "one")
+    
     if raw == None:
         return HttpResponse("invalid sender!")
     raw = getDataFromDB("CreditTransferDB", "courseInfo",
                         {"courseID": data["courseID"]}, "one")
+    print("course"+str(raw))
     if raw == None:
         return HttpResponse("invalid courseID!")
     if raw["selected"] >= raw["capacity"]:
@@ -317,17 +349,26 @@ def SRAdjust(data: dict):
                         {"courseID": data["courseID"], "studentID": data["studentID"]}, "one")
     if raw == None:
         return HttpResponse("not exist!")
+    if raw["courseState"] == True:
+        return HttpResponse("can't modify!")
+
     teacherInfo = getDataFromDB("CreditTransferDB", "teacherInfo",
                                 {"teacherID": data["teacherID"]}, "one")
-    if teacherInfo == None:
-        return HttpResponse("invalid sender!")
+    schoolInfo = getDataFromDB("CreditTransferDB", "schoolInfo",
+                               {"schoolID": data["courseID"][0:5]}, "one")
+    if teacherInfo == None or schoolInfo == None or \
+        data["teacherID"][0:5] != data["courseID"][0:5]:
+        return HttpResponse("sender identification error!")
 
+    if data["score"] != 0 and not data["courseState"]:
+        return HttpResponse("invalid courseState!")
     adjRet = adjDataToDB("CreditTransferDB", "courseRecord",
-        {"studentID": data["studentID"], "courseID": data["courseID"]},
-        {"$set": {"score": data["score"], "GPA": data["GPA"], "courseState": data["courseState"]}})
+                         {"studentID": data["studentID"],
+                             "courseID": data["courseID"]},
+                         {"$set": {"score": data["score"], "GPA": data["GPA"], "courseState": data["courseState"]}})
     print(adjRet)
     if adjRet != None:
-        handler = cr_handler(teacherInfo["priKey"])
+        handler = cr_handler(teacherInfo["priKey"], schoolInfo["ip"])
 
         ret = dict()
         ret["txRet"] = handler.SR_Adjust(data)
@@ -335,22 +376,24 @@ def SRAdjust(data: dict):
     res = HttpResponse("modify succ!")
     return res
 
+
 def SRDrop(data: dict):
     print(data)
     raw = getDataFromDB("CreditTransferDB", "CRCache",
                         {"courseID": data["courseID"], "studentID": data["studentID"]}, "one")
     if raw != None:
         delRet = deleteDataFromDB("CreditTransferDB", "CRCache",
-                        {"courseID": data["courseID"], "studentID": data["studentID"]});
+                                  {"courseID": data["courseID"], "studentID": data["studentID"]})
         return HttpResponse("drop succ!")
 
     raw = getDataFromDB("CreditTransferDB", "courseRecord",
-                         {"courseID": data["courseID"], "studentID": data["studentID"]}, "one")
+                        {"courseID": data["courseID"], "studentID": data["studentID"]}, "one")
     if raw == None:
         return HttpResponse("already droped!")
 
-
     insertRet = insertDataToDB("CreditTransferDB", "CRCache", data)
+    deleteRet = deleteDataFromDB("CreditTransferDB", "courseRecord",
+                                 {"courseID": data["courseID"], "studentID": data["studentID"]})
     print(insertRet.inserted_id)
     res = HttpResponse("drop succ!")
     return res
@@ -436,73 +479,75 @@ def adjustReq(request):
         if str(request.POST).find("SRT_Register") != -1:
             form = SRTForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return StuRegister(data)
         elif str(request.POST).find("SRT_Adjust") != -1:
             form = SRTForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return StuAdjust(data)
         elif str(request.POST).find("Stu_Login") != -1:
             form = StuForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return StuLogin(data)
         elif str(request.POST).find("Stu_Logout") != -1:
             form = StuForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return StuLogout(data)
         # Teacher
         elif str(request.POST).find("Tea_Login") != -1:
             form = TeaForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return TeaLogin(data)
         elif str(request.POST).find("Tea_Logout") != -1:
             form = TeaForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return TeaLogout(data)
         # course
         elif str(request.POST).find("Course_Create") != -1:
             form = CourseForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format" + form.errors.__str__())
+                raise Exception("invalid format!" + form.errors.__str__())
             data = form.cleaned_data
             return CourseCreate(data)
         elif str(request.POST).find("Course_Modify") != -1:
             form = CourseForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                print(form.errors)
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return CourseModify(data)
         # courseRecord
         elif str(request.POST).find("SR_Select") != -1:
             form = CourseRecordForm(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return SRSelect(data)
         elif str(request.POST).find("SR_Adjust") != -1:
             form = SRModifyInput(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                print(form.errors.__str__())
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return SRAdjust(data)
         elif str(request.POST).find("SR_Drop") != -1:
             form = SRDropInput(request.POST)
             if not form.is_valid():
-                raise Exception("invalid format")
+                raise Exception("invalid format!")
             data = form.cleaned_data
             return SRDrop(data)
         raise Exception("invalid push type")
     except Exception as err:
-        print(traceback.format_exc())
-        return HttpResponse(traceback.format_exc())
+        print(err)
+        return HttpResponse(err)

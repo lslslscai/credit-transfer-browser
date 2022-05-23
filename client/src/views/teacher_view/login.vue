@@ -88,10 +88,13 @@ const submitForm = (formEl: FormInstance | undefined) => {
           if(res.data.includes("succ")){
             r.push({path: "/admin/main"})
           }
+          else{
+            alert(res.data)
+          }
         })
       })
     } else {
-      console.log("error submit!");
+      alert("信息格式错误！请重新填写");
       resetForm(formEl);
       return false;
     }
