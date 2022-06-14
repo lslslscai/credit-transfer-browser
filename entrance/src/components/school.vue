@@ -60,13 +60,13 @@ export default {
         wallet.value = w;
       });
     const teacherForm = reactive({
-      teacherID: "",
-      teacherName: "",
+      teacherID: "10001001001",
+      teacherName: "张三",
       pwd: "",
     });
     const collegeForm = reactive({
-      collegeID: "",
-      collegeName: "",
+      collegeID: "001",
+      collegeName: "计算机学院",
     });
     return {
       aelf: aelf,

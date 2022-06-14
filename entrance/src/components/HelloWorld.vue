@@ -12,8 +12,8 @@
     <el-form-item label="ID" :label-width="width">
       <el-input v-model="adminForm.schoolID" />
     </el-form-item>
-    <el-form-item label="密码" :label-width="width" type="password">
-      <el-input v-model="adminForm.schoolPwd" />
+    <el-form-item label="密码" :label-width="width">
+      <el-input v-model="adminForm.schoolPwd" type="password"/>
     </el-form-item>
   </el-form>
 </template>
@@ -27,11 +27,11 @@ export default {
   setup() {
     const width = "200px";
     const adminForm = reactive({
-      schoolID: "",
+      schoolID: "00001",
       schoolPwd: "",
     });
     const connection = reactive({
-      ip: "",
+      ip: "127.0.0.1:8001",
     });
     return {
       adminForm: adminForm,

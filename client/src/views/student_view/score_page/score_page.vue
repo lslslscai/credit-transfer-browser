@@ -38,6 +38,7 @@ export default {
               element["isCompulsory"] = res.data["course"]["isCompulsory"]
                 ? "必修"
                 : "选修";
+              element["time"] = res.data["course"]["protocol"]["startDate"];
             });
         });
         console.log(scores.value);

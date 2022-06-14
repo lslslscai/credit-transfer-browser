@@ -157,6 +157,7 @@ export default {
                 )
                 .then((res) => {
                   element["courseName"] = res.data["course"]["courseName"];
+                  element["time"] = res.data["course"]["protocol"]["startDate"];
                 });
               axios
                 .get(

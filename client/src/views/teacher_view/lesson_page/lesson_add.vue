@@ -112,17 +112,17 @@ import Dialog from "../../../components/dialog/result.vue"
 export default {
   setup() {
     const form = reactive({
-      courseID: "100562160003",
+      courseID: "100020010002",
       courseName: "计算机组成原理",
       isCompulsory: true,
       isValid: true,
-      school: "天津大学",
-      college: "智能与计算学部",
+      school: "yy大学",
+      college: "计算机学院",
       courseType: "课内课程",
       capacity: "100",
       credit: "3",
       protocol: {
-        startDate: new Date(),
+        startDate: new Date(2022,3,1),
         projectDate: new Date(),
         testDate: new Date(),
         rateOfTest: 0.6,

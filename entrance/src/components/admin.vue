@@ -17,7 +17,7 @@
       </el-form-item>
     </el-form>
     <el-button @click="confirmSelect">确认选课</el-button>
-    <el-button @click="testApproveAndTransfer">测试1</el-button>
+    <el-button @click="checkApprove">初始化货币</el-button>
   </div>
 
   <Dialog
@@ -46,8 +46,8 @@ export default {
     );
     if (!aelf.isConnected()) console.log("Blockchain Node is not running.");
     const schoolForm = reactive({
-      schoolID: "",
-      schoolName: "",
+      schoolID: "10001",
+      schoolName: "xx大学",
       schoolPwd: "",
       schoolPriKey: "",
     });
@@ -58,8 +58,43 @@ export default {
       )
       .then((res) => {
         let wallet = AElf.wallet.getWalletByPrivateKey(res.data.priKey);
-        let CRContract;
+        let CRContract, tokenContractAddress, tokenContract;
         (async () => {
+          // get chain status
+          const chainStatus = await aelf.chain.getChainStatus();
+          // get genesis contract address
+          const GenesisContractAddress = chainStatus.GenesisContractAddress;
+          // get genesis contract instance
+          const zeroContract = await aelf.chain.contractAt(
+            GenesisContractAddress,
+            wallet
+          );
+          // Get contract address by the read only method `GetContractAddressByName` of genesis contract
+          tokenContractAddress =
+            await zeroContract.GetContractAddressByName.call(
+              AElf.utils.sha256(tokenContractName)
+            );
+
+          tokenContract = await aelf.chain.contractAt(
+            tokenContractAddress,
+            wallet
+          );
+
+          tokenContract.GetBalance.call({
+            owner: "2i3sogB66f4RJ5ma19b68Umr6ZhgLA5xgtbwsuhA6fqDr2q8Q4",
+            symbol: "ELF",
+          }).then((res) => {
+            console.log(res);
+            tokenContract
+              .Approve({
+                spender: CRAddress,
+                symbol: "ELF",
+                amount: res.balance,
+              })
+              .then((res) => {
+                console.log(res);
+              });
+          });
           // get chain status
           CRContract = await aelf.chain.contractAt(CRAddress, wallet);
           CRContract.Initialize().then(
@@ -102,8 +137,7 @@ export default {
     Dialog,
   },
   methods: {
-    testApproveAndTransfer() {
-      console.log(this.wallet);
+    checkApprove() {
       let tokenContractAddress;
       let tokenContract;
       (async () => {
@@ -126,27 +160,12 @@ export default {
           this.wallet
         );
 
-        tokenContract.GetBalance.call({
+        tokenContract.GetAllowance.call({
           owner: "2i3sogB66f4RJ5ma19b68Umr6ZhgLA5xgtbwsuhA6fqDr2q8Q4",
           symbol: "ELF",
+          spender: CRAddress
         }).then((res) => {
           console.log(res);
-          tokenContract
-            .Approve({
-              spender: CRAddress,
-              symbol: "ELF",
-              amount: res.balance,
-            })
-            .then((res) => {
-              console.log(res);
-              tokenContract.GetAllowance.call({
-                spender: CRAddress,
-                symbol: "ELF",
-                owner: this.wallet.address,
-              }).then((res) => {
-                console.log(res);
-              });
-            });
         });
       })();
     },
@@ -275,6 +294,7 @@ export default {
                 url: "http://127.0.0.1:8000/api/db_admin/adjust/",
               }).then((res) => {
                 console.log(res);
+                alert("选课确认成功！")
               });
             });
           });

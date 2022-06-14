@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from requests import delete
-from db_manage.models import deleteDataFromDB, getDataFromDB, adjDataToDB, insertDataToDB
+from db_manage.models import deleteDataFromDB, findAndReplace, getDataFromDB, adjDataToDB, insertDataToDB
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django import forms
 from db_admin.form import CollegeForm, CourseRecordForm, SchoolForm, TeaForm, loginForm
@@ -77,6 +77,12 @@ def confirmSelect():
             i["courseState"] = False
             del i["pushType"]
             insertRet = insertDataToDB("CreditTransferDB", "courseRecord", i)
+            dest = getDataFromDB("CreditTransferDB", "courseInfo", 
+                                 {"courseID": i["courseID"]}, "one")
+            if dest["selected"] < dest["capacity"]:
+                dest["selected"] += 1
+                replaceRet = findAndReplace("CreditTransferDB", "courseInfo",
+                                            {"courseID": i["courseID"]}, dest)
         deleteRet1 = deleteDataFromDB("CreditTransferDB", "CRCache",
                                      {"courseID": i["courseID"], "studentID": i["studentID"]})
     return HttpResponse("complete")

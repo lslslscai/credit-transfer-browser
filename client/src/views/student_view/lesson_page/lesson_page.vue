@@ -56,9 +56,10 @@ export default {
                   ]
                     ? "必修"
                     : "选修";
+                  element["time"] = res2.data["course"]["protocol"]["startDate"];
                   if (element["pushType"] == "SR_Select") {
                     element["courseState"] = "申请中";
-                  } 
+                  }
                   else if(element["pushType"] == "SR_Drop"){
                     element["courseState"] = "退课中";
                   }

@@ -38,11 +38,11 @@ import Dialog from "../../../components/dialog/result.vue"
 export default {
   setup() {
     const form = reactive({
-      studentID: "",
-      studentName: "",
-      school: "",
-      college: "",
-      type: "",
+      studentID: "100013018001004",
+      studentName: "王五",
+      school: "xx大学",
+      college: "计算机学院",
+      type: "本科生",
     });
     return {
       form,
