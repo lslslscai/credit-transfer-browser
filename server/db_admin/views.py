@@ -83,8 +83,15 @@ def confirmSelect():
                 dest["selected"] += 1
                 replaceRet = findAndReplace("CreditTransferDB", "courseInfo",
                                             {"courseID": i["courseID"]}, dest)
+        elif i["pushType"] == "SR_Drop":
+            dest = getDataFromDB("CreditTransferDB", "courseInfo", 
+                                 {"courseID": i["courseID"]}, "one")
+            if dest["selected"] >= 1:
+                dest["selected"] -= 1
+                replaceRet = findAndReplace("CreditTransferDB", "courseInfo",
+                                            {"courseID": i["courseID"]}, dest)
         deleteRet1 = deleteDataFromDB("CreditTransferDB", "CRCache",
-                                     {"courseID": i["courseID"], "studentID": i["studentID"]})
+                                {"courseID": i["courseID"], "studentID": i["studentID"]})
     return HttpResponse("complete")
 
 # TODO

@@ -1,6 +1,8 @@
 <template>
   <div class="hello">
-    <img alt="Vue logo" src="../../assets/logo.png" />
+    <br/><br/><br/>
+    <img alt="Vue logo" src="../../assets/logo.jpg"/>
+    <br/><br/>
     <h1>{{ text }}</h1>
   </div>
 </template>
